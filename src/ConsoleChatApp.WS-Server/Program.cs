@@ -1,44 +1,37 @@
-var builder = WebApplication.CreateBuilder(args);
+using System.Net;
+using System.Net.WebSockets;
+using System.Text;
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://localhost:6969");
 
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseWebSockets();
+app.MapGet("/ws", async context =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    if (context.WebSockets.IsWebSocketRequest)
+    {
+        using var ws = await context.WebSockets.AcceptWebSocketAsync();
+        while (true)
+        {
+            var message = $"the current time is: {DateTime.Now:HH:mm:ss}";
+            var bytes = Encoding.UTF8.GetBytes(message);
+            var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
 
-app.UseHttpsRedirection();
+            if (ws.State == WebSocketState.Open)
+            {
+                await ws.SendAsync(
+                    arraySegment,
+                    WebSocketMessageType.Text,
+                    true,
+                    CancellationToken.None);
+            }
+            else if (ws.State == WebSocketState.Closed || ws.State == WebSocketState.Aborted) break;
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+            Thread.Sleep(1000);
+        }
+    }
+    else context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+});
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
-
-app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+await app.RunAsync();
