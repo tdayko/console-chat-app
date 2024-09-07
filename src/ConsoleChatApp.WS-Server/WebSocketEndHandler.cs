@@ -1,9 +1,6 @@
 using System.Net;
 using System.Net.WebSockets;
 using System.Text;
-
-using Microsoft.AspNetCore.WebSockets;
-
 namespace ConsoleChatApp.WS_Server;
 
 public static class WebSocketHandler

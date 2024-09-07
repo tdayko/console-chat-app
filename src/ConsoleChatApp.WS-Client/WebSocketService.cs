@@ -3,9 +3,9 @@ using System.Text;
 
 namespace ConsoleChatApp.WS_Client;
 
-public class WebSocketService
+public static class WebSocketService
 {
-    public async Task SendMessagesAsync(ClientWebSocket ws)
+    public static async Task SendMessagesAsync(ClientWebSocket ws)
     {
         while (true)
         {
@@ -18,7 +18,7 @@ public class WebSocketService
         }
     }
 
-    public async Task ReceiveMessagesAsync(ClientWebSocket ws)
+    public static async Task ReceiveMessagesAsync(ClientWebSocket ws)
     {
         var buffer = new byte[1024 * 4];
         while (true)
