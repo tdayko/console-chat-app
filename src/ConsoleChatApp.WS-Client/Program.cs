@@ -1,51 +1,34 @@
 ﻿using System.Net.WebSockets;
-using System.Text;
+using ConsoleChatApp.WS_Client;
 
-string name = string.Empty;
-while (true)
+static string GetUserName()
 {
-    if (!string.IsNullOrWhiteSpace(name)) break;
+    string name;
+    do
+    {
+        Console.Write("Input your name: ");
+        name = Console.ReadLine()!.Trim();
+    } while (string.IsNullOrWhiteSpace(name));
 
-    Console.Write("Input your name: ");
-    name = Console.ReadLine()!.Trim();
+    return name;
 }
 
-var ws = new ClientWebSocket();
-await ws.ConnectAsync(new Uri($"ws://localhost:6969/ws?name={name}"), CancellationToken.None);
-Console.WriteLine("connected");
+string name = GetUserName();
+using var ws = new ClientWebSocket();
 
-var sendTask = Task.Run(async () =>
-{
-    while (true)
-    {
-        var message = Console.ReadLine();
+await ws.ConnectAsync(new Uri($"ws://localhost:8080/ws?name={name}"), CancellationToken.None);
+Console.WriteLine("Connected");
 
-        if (string.IsNullOrWhiteSpace(message)) continue;
-        if (message == "/exit") break;
+var webSocketService = new WebSocketService();
 
-        var bytes = Encoding.UTF8.GetBytes(message!);
-        await ws.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
-    }
-});
-
-var receiveTask = Task.Run(async () =>
-{
-    var buffer = new byte[1024 * 4];
-    while (true)
-    {
-        var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-        if (result.MessageType == WebSocketMessageType.Close) break;
-
-        var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-        Console.WriteLine($"{message}");
-    }
-});
+var sendTask = Task.Run(() => webSocketService.SendMessagesAsync(ws));
+var receiveTask = Task.Run(() => webSocketService.ReceiveMessagesAsync(ws));
 
 await Task.WhenAny(sendTask, receiveTask);
 
 if (ws.State != WebSocketState.Closed)
 {
-    await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "closing", CancellationToken.None);
+    await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
 }
 
 await Task.WhenAll(sendTask, receiveTask);
