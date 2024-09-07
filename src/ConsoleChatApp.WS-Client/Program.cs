@@ -1,44 +1,21 @@
-var builder = WebApplication.CreateBuilder(args);
+﻿using System.Net.WebSockets;
+using System.Text;
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+var ws = new ClientWebSocket();
+await ws.ConnectAsync(new Uri("ws://localhost:6969/ws"), CancellationToken.None);
+Console.WriteLine("connected");
 
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+var receiveTask = Task.Run(async () =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    var buffer = new byte[1024 * 4];
+    while (true)
+    {
+        var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+        if (result.MessageType == WebSocketMessageType.Close) break;
 
-app.UseHttpsRedirection();
+        var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+        Console.WriteLine($"received: {message}");
+    }
+});
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
-
-app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+await receiveTask;
