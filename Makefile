@@ -1,5 +1,5 @@
-run-server:
+server:
 	dotnet run --project src/ConsoleChatApp.WS-Server
 
-run-client: 
+client: 
 	dotnet run --project src/ConsoleChatApp.WS-Client
