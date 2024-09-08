@@ -47,6 +47,6 @@ Este é um aplicativo de chat de console desenvolvido em C# e .NET 8, utilizando
 - .NET 8
 
 ## Links Relacionados
-Wikipedia: https://en.wikipedia.org/wiki/WebSocket </br>
-ASP.NET Core Docs: https://learn.microsoft.com/pt-br/aspnet/core/fundamentals/websockets?view=aspnetcore-8.0 </br>
-Baltaio: https://balta.io/blog/aspnet-websockets </br>
+https://en.wikipedia.org/wiki/WebSocket </br>
+https://learn.microsoft.com/pt-br/aspnet/core/fundamentals/websockets?view=aspnetcore-8.0 </br>
+https://balta.io/blog/aspnet-websockets </br>
