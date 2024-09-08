@@ -1,4 +1,4 @@
-# ConsoleChatApp
+# Console Chat App
 
 Este é um aplicativo de chat de console desenvolvido em C# e .NET 8, utilizando WebSockets para comunicação em tempo real entre clientes e servidor.
 
