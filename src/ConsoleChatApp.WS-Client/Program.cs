@@ -30,4 +30,4 @@ if (ws.State == WebSocketState.Closed)
     await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "closing", CancellationToken.None);
 }
 
-await Task.WhenAny(sendTask, receiveTask);
+await Task.WhenAll(sendTask, receiveTask);
