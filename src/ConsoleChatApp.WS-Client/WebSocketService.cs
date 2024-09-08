@@ -5,7 +5,7 @@ namespace ConsoleChatApp.WS_Client;
 
 public static class WebSocketService
 {
-    public static async Task SendMessagesAsync(ClientWebSocket ws)
+    public static async Task SendMessagesAsync(ClientWebSocket ws, string username)
     {
         while (true)
         {
@@ -21,13 +21,18 @@ public static class WebSocketService
     public static async Task ReceiveMessagesAsync(ClientWebSocket ws)
     {
         var buffer = new byte[1024 * 4];
+        var allMessages = new List<string>();
+
         while (true)
         {
             var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             if (result.MessageType == WebSocketMessageType.Close) break;
 
             var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            Console.WriteLine($"{message}");
+            allMessages.Add(message);
+            Console.Clear();
+
+            allMessages.ForEach(msg => Console.WriteLine(msg));
         }
     }
 }
