@@ -9,30 +9,28 @@ public static class WebSocketHandler
 
     public static void MapWebSocketHandler(this IEndpointRouteBuilder app, string path)
     {
-        var connections = new List<WebSocket>();
-
         app.MapGet(path, async context =>
         {
             if (context.WebSockets.IsWebSocketRequest)
             {
-                var name = context.Request.Query["name"];
+                var username = context.Request.Query["username"];
                 using var ws = await context.WebSockets.AcceptWebSocketAsync();
 
-                connections.Add(ws);
-                await BroadcastAsync($"{name} joined the room!");
-                await BroadcastAsync($"{connections.Count} users connected.");
+                _connections.Add(ws);
+                await BroadcastAsync($"{username} joined the room!");
+                await BroadcastAsync($"{_connections.Count} users connected.");
 
                 await ReceiveMessagesAsync(ws, async (result, buffer) =>
                 {
                     if (result.MessageType == WebSocketMessageType.Text)
                     {
                         string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                        await BroadcastAsync($"{name}: {message}");
+                        await BroadcastAsync($"{username}: {message}");
                     }
                     else if (result.MessageType == WebSocketMessageType.Close || ws.State == WebSocketState.Aborted)
                     {
                         _connections.Remove(ws);
-                        await BroadcastAsync($"{name} left the room");
+                        await BroadcastAsync($"{username} left the room");
                         await BroadcastAsync($"{_connections.Count} users connected");
                         await ws.CloseAsync(result.CloseStatus!.Value, result.CloseStatusDescription, CancellationToken.None);
                     }
