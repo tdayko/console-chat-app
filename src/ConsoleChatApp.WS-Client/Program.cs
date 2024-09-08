@@ -1,30 +1,31 @@
 ﻿using System.Net.WebSockets;
 using ConsoleChatApp.WS_Client;
 
-static string GetUserName()
+static string GetUserusername()
 {
-    string? name;
+    string? username;
     do
     {
-        Console.Write("input your name: ");
-        name = Console.ReadLine();
-    } while (string.IsNullOrWhiteSpace(name));
+        Console.Write("input your username: ");
+        username = Console.ReadLine();
+    } while (string.IsNullOrWhiteSpace(username));
 
-    return name.Trim();
+    return username.Trim();
 }
 
-string name = GetUserName();
+Console.Clear();
+string username = GetUserusername();
 using var ws = new ClientWebSocket();
 
-await ws.ConnectAsync(new Uri($"ws://localhost:8080/ws?name={name}"), CancellationToken.None);
+await ws.ConnectAsync(new Uri($"ws://localhost:8080/ws?username={username}"), CancellationToken.None);
 Console.WriteLine("connected");
 
-var sendTask = Task.Run(() => WebSocketService.SendMessagesAsync(ws));
+var sendTask = Task.Run(() => WebSocketService.SendMessagesAsync(ws, username));
 var receiveTask = Task.Run(() => WebSocketService.ReceiveMessagesAsync(ws));
 
 await Task.WhenAny(sendTask, receiveTask);
 
-if (ws.State != WebSocketState.Closed)
+if (ws.State == WebSocketState.Closed)
 {
     await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "closing", CancellationToken.None);
 }
